@@ -35,6 +35,11 @@
             <p class="mb-0">Powered by a2ajava 1.0.0 with A2UI v0.8 support</p>
         </div>
         
+        <div id="environmentInfo" class="alert alert-info" style="margin: 15px; display:none;">
+            <strong>🌐 Environment:</strong> <span id="environmentMode"></span><br>
+            <strong>📡 API Server:</strong> <code id="apiServerUrl"></code>
+        </div>
+        
         <div id="agentInfo" class="agent-info" style="display:none;">
             <strong>Agent Status:</strong> <span id="agentName"></span>
             <span id="a2uiStatus"></span>
@@ -67,7 +72,18 @@
             ? 'http://localhost:7860'
             : 'https://vishalmysore-a2ui.hf.space';
         
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        
+        console.log('Current hostname:', window.location.hostname);
+        console.log('Environment:', isLocal ? 'Local Development' : 'Production (GitHub Pages)');
         console.log('API Base URL:', API_BASE_URL);
+        
+        // Show environment info in UI
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('environmentMode').textContent = isLocal ? 'Local Development' : 'Production (GitHub Pages)';
+            document.getElementById('apiServerUrl').textContent = API_BASE_URL;
+            document.getElementById('environmentInfo').style.display = 'block';
+        });
 
         // Load agent card on page load
         window.addEventListener('DOMContentLoaded', () => {
