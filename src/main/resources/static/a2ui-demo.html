@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A2UI Demo - SpringActions</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { padding: 20px; background-color: #f5f5f5; }
+        .chat-container { max-width: 1200px; margin: 0 auto; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .chat-header { background: #0d6efd; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
+        .chat-messages { height: 500px; overflow-y: auto; padding: 20px; border-bottom: 1px solid #dee2e6; }
+        .message { margin-bottom: 15px; padding: 10px 15px; border-radius: 8px; max-width: 80%; }
+        .user-message { background: #e3f2fd; margin-left: auto; text-align: right; }
+        .agent-message { background: #f5f5f5; }
+        .a2ui-component { margin-top: 10px; padding: 15px; border: 1px solid #dee2e6; border-radius: 8px; background: white; }
+        .comparison-table { width: 100%; margin-top: 10px; }
+        .comparison-table th { background: #0d6efd; color: white; padding: 10px; }
+        .comparison-table td { padding: 10px; border: 1px solid #dee2e6; }
+        .weather-card { display: flex; align-items: center; gap: 20px; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 12px; }
+        .weather-icon { font-size: 4em; }
+        .weather-details { flex: 1; }
+        .weather-temp { font-size: 3em; font-weight: bold; }
+        .chat-input-container { padding: 20px; display: flex; gap: 10px; }
+        .agent-info { background: #f8f9fa; padding: 15px; margin-bottom: 20px; border-radius: 8px; border-left: 4px solid #0d6efd; }
+        .extension-badge { display: inline-block; padding: 4px 12px; background: #198754; color: white; border-radius: 12px; font-size: 0.85em; margin-left: 10px; }
+        .form-component { background: #f8f9fa; padding: 20px; border-radius: 8px; }
+        .form-component .form-label { font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h2>A2UI Demo - Agent-Driven UI</h2>
+            <p class="mb-0">Powered by a2ajava 1.0.0 with A2UI v0.8 support</p>
+        </div>
+        
+        <div id="agentInfo" class="agent-info" style="display:none;">
+            <strong>Agent Status:</strong> <span id="agentName"></span>
+            <span id="a2uiStatus"></span>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <div class="alert alert-info">
+                <strong>Welcome!</strong> Try asking about:
+                <ul class="mb-0 mt-2">
+                    <li>"Compare cars" - See car comparison table</li>
+                    <li>"What's the weather?" - View weather widget</li>
+                    <li>"Create a ticket" - Interactive form</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="chat-input-container">
+            <input type="text" class="form-control" id="messageInput" placeholder="Type your message..." onkeypress="if(event.key==='Enter') sendMessage()">
+            <button class="btn btn-primary" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        let a2uiEnabled = false;
+
+        // Load agent card on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadAgentCard();
+        });
+
+        async function loadAgentCard() {
+            try {
+                const response = await fetch('/.well-known/agent.json');
+                const agentCard = await response.json();
+                
+                document.getElementById('agentName').textContent = agentCard.name || 'Agent';
+                
+                // Check for A2UI extension
+                if (agentCard.extensions && agentCard.extensions.some(ext => ext.uri && ext.uri.includes('a2ui'))) {
+                    a2uiEnabled = true;
+                    document.getElementById('a2uiStatus').innerHTML = '<span class="extension-badge">A2UI Enabled</span>';
+                } else {
+                    document.getElementById('a2uiStatus').innerHTML = '<span class="badge bg-secondary">A2UI Not Available</span>';
+                }
+                
+                document.getElementById('agentInfo').style.display = 'block';
+            } catch (error) {
+                console.error('Failed to load agent card:', error);
+                addMessage('agent', 'Note: Running without agent card. A2UI features enabled by default.');
+                a2uiEnabled = true; // Enable anyway for demo
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            addMessage('user', message);
+            input.value = '';
+            
+            try {
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+                
+                if (a2uiEnabled) {
+                    headers['X-A2A-Extensions'] = 'https://a2ui.org/a2a-extension/a2ui/v0.8';
+                }
+                
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify({ message: message })
+                });
+                
+                const data = await response.json();
+                
+                addMessage('agent', data.response);
+                
+                if (data.parts && data.parts.length > 0) {
+                    data.parts.forEach(part => {
+                        if (part.metadata && part.metadata.mimeType === 'application/json+a2ui') {
+                            renderA2UIComponent(part.data);
+                        }
+                    });
+                }
+            } catch (error) {
+                addMessage('agent', 'Error: ' + error.message);
+            }
+        }
+
+        function addMessage(sender, text) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ' + (sender === 'user' ? 'user-message' : 'agent-message');
+            messageDiv.textContent = text;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function renderA2UIComponent(data) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const componentDiv = document.createElement('div');
+            componentDiv.className = 'a2ui-component';
+            
+            switch (data.type) {
+                case 'comparison':
+                    componentDiv.innerHTML = renderComparison(data);
+                    break;
+                case 'weather':
+                    componentDiv.innerHTML = renderWeather(data);
+                    break;
+                case 'form':
+                    componentDiv.innerHTML = renderForm(data);
+                    break;
+                default:
+                    componentDiv.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            }
+            
+            messagesDiv.appendChild(componentDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function renderComparison(data) {
+            let html = '<h5>' + data.title + '</h5>';
+            html += '<table class="comparison-table table table-striped">';
+            
+            // Header
+            if (data.items && data.items.length > 0) {
+                const keys = Object.keys(data.items[0]);
+                html += '<thead><tr>';
+                keys.forEach(key => {
+                    html += '<th>' + key.charAt(0).toUpperCase() + key.slice(1) + '</th>';
+                });
+                html += '</tr></thead>';
+                
+                // Rows
+                html += '<tbody>';
+                data.items.forEach(item => {
+                    html += '<tr>';
+                    keys.forEach(key => {
+                        html += '<td>' + item[key] + '</td>';
+                    });
+                    html += '</tr>';
+                });
+                html += '</tbody>';
+            }
+            
+            html += '</table>';
+            
+            // Add conclusion if available
+            if (data.conclusion) {
+                html += '<div class="alert alert-info mt-3"><strong>Conclusion:</strong> ' + data.conclusion + '</div>';
+            }
+            
+            return html;
+        }
+
+        function renderWeather(data) {
+            return \
+                <div class="weather-card">
+                    <div class="weather-icon">\</div>
+                    <div class="weather-details">
+                        <h4>\</h4>
+                        <div class="weather-temp">\</div>
+                        <div><strong>\</strong></div>
+                        <div class="mt-2">
+                            <small>Humidity: \ | Wind: \</small>
+                        </div>
+                    </div>
+                </div>
+            \;
+        }
+
+        function renderForm(data) {
+            let html = '<div class="form-component">';
+            html += '<h5>' + data.title + '</h5>';
+            if (data.description) {
+                html += '<p class="text-muted">' + data.description + '</p>';
+            }
+            
+            html += '<form onsubmit="submitForm(event)">';
+            
+            data.fields.forEach(field => {
+                html += '<div class="mb-3">';
+                html += '<label class="form-label">' + field.label + (field.required ? ' *' : '') + '</label>';
+                
+                if (field.type === 'textarea') {
+                    html += '<textarea class="form-control" name="' + field.name + '" ' + (field.required ? 'required' : '') + '></textarea>';
+                } else if (field.type === 'select') {
+                    html += '<select class="form-select" name="' + field.name + '">';
+                    field.options.forEach(opt => {
+                        html += '<option value="' + opt + '">' + opt + '</option>';
+                    });
+                    html += '</select>';
+                } else {
+                    html += '<input type="' + field.type + '" class="form-control" name="' + field.name + '" ' + (field.required ? 'required' : '') + '>';
+                }
+                
+                html += '</div>';
+            });
+            
+            html += '<button type="submit" class="btn btn-primary">Submit</button>';
+            html += '</form>';
+            html += '</div>';
+            
+            return html;
+        }
+
+        function submitForm(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData);
+            addMessage('agent', 'Form submitted: ' + JSON.stringify(data, null, 2));
+            event.target.reset();
+        }
+    </script>
+</body>
+</html>

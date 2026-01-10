@@ -20,7 +20,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 @Service
 @Log
-@Agent(groupName = "getTemperature",groupDescription = "get weather for city")
+//@Agent(groupName = "getTemperature",groupDescription = "get weather for city")
 public class WeatherService  {
 
     /**
@@ -39,7 +39,7 @@ public class WeatherService  {
     @Autowired
     SimpleService action;
 
-    @Action(description = "get temperature for city")
+    //@Action(description = "get temperature for city")
     public String getTemperature(String cityName) {
         log.info(action+" here ");
         double temperature = 0;

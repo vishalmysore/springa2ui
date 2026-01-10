@@ -2,54 +2,79 @@ package io.github.vishalmysore.service;
 
 import com.t4a.annotations.Action;
 import com.t4a.annotations.Agent;
-
-import com.t4a.api.JavaMethodAction;
-
 import com.t4a.detect.ActionCallback;
-import com.t4a.detect.ActionState;
-import com.t4a.processor.AIProcessingException;
-import com.t4a.processor.AIProcessor;
-import com.t4a.processor.OpenAiActionProcessor;
-import io.github.vishalmysore.a2a.domain.Task;
-import io.github.vishalmysore.a2a.domain.TaskState;
 import io.github.vishalmysore.common.CallBackType;
-import lombok.extern.java.Log;
+import io.github.vishalmysore.util.A2UIDisplay;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-/**
- * This is your A2A task or MCP tool which will be used to compare 2 cars
- * It will get automatically exposed as a tool in the A2A framework
- * This is the service class which will be used to compare 2 cars
- *
- * Each action has access to AIProcessor and ActionCallback which are autowired by tools4ai
- */
+import java.util.*;
+
 @Service
-@Log
-@Agent(groupName ="compareCar", groupDescription = "Provide 2 cars and compare them")
-public class CompareCarService{
+@Agent(groupName = "compareCar", groupDescription = "compare 2 cars")
+@Slf4j
+public class CompareCarService implements A2UIDisplay {
+
+    /**
+     * Each action has access to AIProcessor and ActionCallback which are autowired by tools4ai
+     */
+    private ThreadLocal<ActionCallback> callback = new ThreadLocal<>();
+
     public CompareCarService() {
-        log.info("created compare car service");
+        log.info("created car service");
     }
 
-    /**
-     * Each action has access to AIProcessor and ActionCallback which are autowired by tools4ai
-     */
-    private ActionCallback callback;
-
-    /**
-     * Each action has access to AIProcessor and ActionCallback which are autowired by tools4ai
-     */
-    private AIProcessor processor;
-
     @Action(description = "compare 2 cars")
-    public String compareCar(String car1 , String car2) {
-
-        log.info(car2);
-        log.info(car1);
-        // implement the comparison logic here
-        if(callback!=null) {
-            callback.sendtStatus(car2+" is better than "+car1, ActionState.COMPLETED);
+    public Object compareCar(String car1, String car2) {
+        log.info("Comparing cars: {} vs {}", car1, car2);
+        
+        // Simple comparison logic
+        String betterCar;
+        if (car1.toLowerCase().contains("toyota")) {
+            betterCar = car1;
+        } else if (car2.toLowerCase().contains("toyota")) {
+            betterCar = car2;
+        } else {
+            betterCar = car1;
         }
-        return " this is better - "+car2;
+        if(isUICallback(callback))
+        {
+            String result = betterCar + " is better than " + (betterCar.equals(car1) ? car2 : car1);
+            return createComparisonUI(car1, car2, betterCar, result);
+        } else {
+            return betterCar + " is better than " + (betterCar.equals(car1) ? car2 : car1);
+        }
+    }
+
+
+
+    private Map<String, Object> createComparisonUI(String car1, String car2, String winner, String result) {
+        String surfaceId = "car_comparison";
+        String rootId = "root";
+
+        // Define child component IDs
+        List<String> childIds = Arrays.asList("title", "car1_display", "car2_display", "result");
+
+        // Build components list
+        List<Map<String, Object>> components = new ArrayList<>();
+
+        // Add root column
+        components.add(createRootColumn(rootId, childIds));
+
+        // Add title
+        components.add(createTextComponent("title", "Car Comparison", "h2"));
+
+        // Add car displays with winner trophy
+        String car1Text = "Car 1: " + car1 + (car1.equals(winner) ? " 🏆" : "");
+        components.add(createTextComponent("car1_display", car1Text));
+
+        String car2Text = "Car 2: " + car2 + (car2.equals(winner) ? " 🏆" : "");
+        components.add(createTextComponent("car2_display", car2Text));
+
+        // Add result
+        components.add(createTextComponent("result", result, "body"));
+
+        // Build complete A2UI message
+        return buildA2UIMessage(surfaceId, rootId, components);
     }
 }
