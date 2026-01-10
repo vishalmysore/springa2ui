@@ -16,7 +16,8 @@ A2A (Agent-to-Agent) is Google's protocol that enables AI agents to discover and
 MCP (Model Context Protocol) is Anthropic's specification for enabling structured interactions between AI models and external tools/services. It provides a standardized way to define tool interfaces that can be called by AI models, with features like runtime type validation and standardized error handling.
 
 ## Google A2A Integration with Spring Boot
-Integrate your Spring Boot applications with Google's A2A Protocol using a2ajava. This integration allows any Spring bean to be exposed as an AI-actionable service—no need for extra annotations or custom wiring. 
+Integrate your Spring Boot applications with Google's A2A Protocol using a2ajava. This integration allows any Spring bean to be exposed as an AI-actionable service—no need for extra annotations or custom wiring issues.  
+
 
 ✅ Key Features
 - Auto-discovery of Spring Beans as A2A Actions
