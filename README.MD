@@ -1,7 +1,7 @@
-# Spring Actions - A2A & MCP Integration Framework
+# Spring A2UI - A2A & A2UI Integration with Spring Boot
 
 ## Overview
-Integrate your Spring Boot applications with Google's A2A Protocol and Anthropic's Model Context Protocol (MCP) using a2ajava. This integration allows any Spring bean to be exposed as an AI-actionable service—no need for extra annotations or custom wiring.  
+Integrate your Spring Boot applications with Google's A2A Protocol, A2UI Protocol and Anthropic's Model Context Protocol (MCP) using a2ajava. This integration allows any Spring bean to be exposed as an AI-actionable service—no need for extra annotations or custom wiring.  
 **A2AJava is the Java implementation** of the Google A2A protocol you can check the project [here](https://github.com/vishalmysore/a2ajava) .  
 
 Live Demo of this server is available [here](https://huggingface.co/spaces/VishalMysore/a2amcpspring)
