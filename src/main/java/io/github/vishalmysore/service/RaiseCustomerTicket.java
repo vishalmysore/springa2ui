@@ -17,7 +17,7 @@ import java.util.*;
 
 @Service
 @Log
-@Agent(groupName ="raiseTicket", groupDescription = "Create a ticket for customer")
+//@Agent(groupName ="raiseTicket", groupDescription = "Create a ticket for customer")
 public class RaiseCustomerTicket implements A2UIDisplay {
     /**
      * Each action has access to AIProcessor and ActionCallback which are autowired by tools4ai

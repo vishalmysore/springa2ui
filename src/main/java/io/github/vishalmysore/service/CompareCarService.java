@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 
 @Service
-@Agent(groupName = "compareCar", groupDescription = "compare 2 cars")
+//@Agent(groupName = "compareCar", groupDescription = "compare 2 cars")
 @Slf4j
 public class CompareCarService implements A2UIDisplay {
 

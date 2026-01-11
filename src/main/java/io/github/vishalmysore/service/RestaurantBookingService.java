@@ -31,7 +31,7 @@ public class RestaurantBookingService implements A2UIDisplay {
         log.info("created RestaurantBookingService");
     }
 
-    @Action(description = "Book a restaurant reservation - shows a form to collect reservation details")
+    //@Action(description = "Book a restaurant reservation - shows a form to collect reservation details")
     public Object bookRestaurantReservation(String restaurantName) {
         log.info("Booking restaurant reservation for: " + restaurantName);
         
