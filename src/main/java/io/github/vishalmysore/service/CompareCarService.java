@@ -3,22 +3,22 @@ package io.github.vishalmysore.service;
 import com.t4a.annotations.Action;
 import com.t4a.annotations.Agent;
 import com.t4a.detect.ActionCallback;
-import io.github.vishalmysore.common.CallBackType;
-import io.github.vishalmysore.util.A2UIDisplay;
+import com.t4a.processor.ProcessorAware;
+import io.github.vishalmysore.a2ui.A2UIAware;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 
 @Service
-//@Agent(groupName = "compareCar", groupDescription = "compare 2 cars")
+@Agent(groupName = "compareCar", groupDescription = "compare 2 cars", prompt = "you are a car comparison assistant. Provide users with detailed comparisons between two car models based on their features, performance, and specifications.")
 @Slf4j
-public class CompareCarService implements A2UIDisplay {
+public class CompareCarService implements A2UIAware, ProcessorAware {
 
     /**
      * Each action has access to AIProcessor and ActionCallback which are autowired by tools4ai
      */
-    private ThreadLocal<ActionCallback> callback = new ThreadLocal<>();
+
 
     public CompareCarService() {
         log.info("created car service");
@@ -37,7 +37,7 @@ public class CompareCarService implements A2UIDisplay {
         } else {
             betterCar = car1;
         }
-        if(isUICallback(callback))
+        if(isUICallback(getCallback()))
         {
             String result = betterCar + " is better than " + (betterCar.equals(car1) ? car2 : car1);
             return createComparisonUI(car1, car2, betterCar, result);

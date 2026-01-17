@@ -1,11 +1,10 @@
 package io.github.vishalmysore.service;
 
 import com.t4a.annotations.Action;
-import com.t4a.annotations.Agent;
 import com.t4a.detect.ActionCallback;
 import com.t4a.processor.AIProcessor;
-import io.github.vishalmysore.common.CallBackType;
-import io.github.vishalmysore.util.A2UIDisplay;
+import com.t4a.processor.ProcessorAware;
+import io.github.vishalmysore.a2ui.A2UIAware;
 import lombok.extern.java.Log;
 import io.github.vishalmysore.pojo.RestaurantPojo;
 import org.springframework.stereotype.Service;
@@ -14,60 +13,54 @@ import java.util.*;
 
 @Log
 @Service
-@Agent(groupName = "restaurantBooking", groupDescription = "Book restaurant reservations with menu selection")
-public class RestaurantBookingService implements A2UIDisplay {
+// @Agent(groupName = "restaurantBooking", groupDescription = "Book restaurant
+// reservations with menu selection")
+public class RestaurantBookingService implements A2UIAware, ProcessorAware {
 
-    /**
-     * Each action has access to AIProcessor and ActionCallback which are autowired by tools4ai
-     */
-    private static final ThreadLocal<ActionCallback> callbackThreadLocal = new ThreadLocal<>();
 
-    /**
-     * Each action has access to AIProcessor and ActionCallback which are autowired by tools4ai
-     */
-    private AIProcessor processor;
 
-    public RestaurantBookingService(){
+    public RestaurantBookingService() {
         log.info("created RestaurantBookingService");
     }
 
-    //@Action(description = "Book a restaurant reservation - shows a form to collect reservation details")
+    // @Action(description = "Book a restaurant reservation - shows a form to
+    // collect reservation details")
     public Object bookRestaurantReservation(String restaurantName) {
         log.info("Booking restaurant reservation for: " + restaurantName);
-        
+
         // Check if A2UI is requested
-        if(isUICallback(callbackThreadLocal)) {
+        if (isUICallback(getCallback())) {
             return createReservationFormUI(restaurantName);
         } else {
-            return "Please provide reservation details for " + restaurantName + 
-                   ": date, time, number of people, and menu preference";
+            return "Please provide reservation details for " + restaurantName +
+                    ": date, time, number of people, and menu preference";
         }
     }
 
     @Action(description = "Confirm restaurant reservation with all details including menu type")
-    public Object confirmReservation(String restaurantName, String date, String time, 
-                                     int numberOfPeople, String menuType, String specialRequests) {
-        log.info("Confirming reservation - Restaurant: " + restaurantName + 
-                ", Date: " + date + ", Time: " + time + 
+    public Object confirmReservation(String restaurantName, String date, String time,
+            int numberOfPeople, String menuType, String specialRequests) {
+        log.info("Confirming reservation - Restaurant: " + restaurantName +
+                ", Date: " + date + ", Time: " + time +
                 ", People: " + numberOfPeople + ", Menu: " + menuType);
-        
+
         // Generate confirmation number
         String confirmationNumber = "RES-" + System.currentTimeMillis() % 100000;
-        
+
         // Check if A2UI is requested
-        if(isUICallback(callbackThreadLocal)) {
-            return createConfirmationUI(restaurantName, date, time, numberOfPeople, 
-                                       menuType, specialRequests, confirmationNumber);
+        if (isUICallback(getCallback())) {
+            return createConfirmationUI(restaurantName, date, time, numberOfPeople,
+                    menuType, specialRequests, confirmationNumber);
         } else {
-            return "Reservation confirmed! Confirmation #" + confirmationNumber + 
-                   " for " + restaurantName + " on " + date + " at " + time + 
-                   " for " + numberOfPeople + " people. Menu: " + menuType;
+            return "Reservation confirmed! Confirmation #" + confirmationNumber +
+                    " for " + restaurantName + " on " + date + " at " + time +
+                    " for " + numberOfPeople + " people. Menu: " + menuType;
         }
     }
 
-    public String bookReservation(RestaurantPojo restaurantPojo){
+    public String bookReservation(RestaurantPojo restaurantPojo) {
         log.info(restaurantPojo.toString());
-        return "This has been booked "+restaurantPojo.toString();
+        return "This has been booked " + restaurantPojo.toString();
     }
 
     /**
@@ -79,20 +72,19 @@ public class RestaurantBookingService implements A2UIDisplay {
 
         // Define child component IDs
         List<String> childIds = Arrays.asList(
-            "title",
-            "restaurant_name",
-            "form_section_title",
-            "date_input",
-            "time_input",
-            "people_input",
-            "menu_section_title",
-            "menu_appetizer",
-            "menu_entree",
-            "menu_dessert",
-            "special_requests_input",
-            "confirm_button",
-            "confirm_button_text"
-        );
+                "title",
+                "restaurant_name",
+                "form_section_title",
+                "date_input",
+                "time_input",
+                "people_input",
+                "menu_section_title",
+                "menu_appetizer",
+                "menu_entree",
+                "menu_dessert",
+                "special_requests_input",
+                "confirm_button",
+                "confirm_button_text");
 
         // Build components list
         List<Map<String, Object>> components = new ArrayList<>();
@@ -121,7 +113,8 @@ public class RestaurantBookingService implements A2UIDisplay {
         components.add(createTextFieldComponent("menu_dessert", "Dessert Choice", "/reservation/menu/dessert"));
 
         // Add special requests field
-        components.add(createTextFieldComponent("special_requests_input", "Special Requests", "/reservation/specialRequests"));
+        components.add(
+                createTextFieldComponent("special_requests_input", "Special Requests", "/reservation/specialRequests"));
 
         // Add confirm button with context bindings
         Map<String, String> contextBindings = new HashMap<>();
@@ -131,8 +124,9 @@ public class RestaurantBookingService implements A2UIDisplay {
         contextBindings.put("numberOfPeople", "/reservation/numberOfPeople");
         contextBindings.put("menuType", "/reservation/menu/entree"); // Use main entree as menu type
         contextBindings.put("specialRequests", "/reservation/specialRequests");
-        components.add(createButtonComponent("confirm_button", "Confirm Reservation", "confirmReservation", contextBindings));
-        
+        components.add(
+                createButtonComponent("confirm_button", "Confirm Reservation", "confirmReservation", contextBindings));
+
         // Add button text child
         components.add(createTextComponent("confirm_button_text", "Confirm Reservation"));
 
@@ -155,29 +149,28 @@ public class RestaurantBookingService implements A2UIDisplay {
      * Creates an A2UI confirmation display with option to make another reservation
      */
     private Map<String, Object> createConfirmationUI(String restaurantName, String date, String time,
-                                                     int numberOfPeople, String menuType, 
-                                                     String specialRequests, String confirmationNumber) {
+            int numberOfPeople, String menuType,
+            String specialRequests, String confirmationNumber) {
         String surfaceId = "reservation_confirmation";
         String rootId = "root";
 
         // Define child component IDs
         List<String> childIds = Arrays.asList(
-            "title",
-            "success_message",
-            "confirmation_number",
-            "details_title",
-            "restaurant_detail",
-            "date_detail",
-            "time_detail",
-            "people_detail",
-            "menu_detail",
-            "special_requests_detail",
-            "divider",
-            "new_booking_title",
-            "new_restaurant_input",
-            "book_button",
-            "book_button_text"
-        );
+                "title",
+                "success_message",
+                "confirmation_number",
+                "details_title",
+                "restaurant_detail",
+                "date_detail",
+                "time_detail",
+                "people_detail",
+                "menu_detail",
+                "special_requests_detail",
+                "divider",
+                "new_booking_title",
+                "new_restaurant_input",
+                "book_button",
+                "book_button_text");
 
         // Build components list
         List<Map<String, Object>> components = new ArrayList<>();
@@ -201,9 +194,10 @@ public class RestaurantBookingService implements A2UIDisplay {
         components.add(createTextComponent("time_detail", "🕐 Time: " + time, "body"));
         components.add(createTextComponent("people_detail", "👥 Party Size: " + numberOfPeople + " people", "body"));
         components.add(createTextComponent("menu_detail", "🍽️ Menu: " + menuType, "body"));
-        
+
         if (specialRequests != null && !specialRequests.isEmpty()) {
-            components.add(createTextComponent("special_requests_detail", "📝 Special Requests: " + specialRequests, "body"));
+            components.add(
+                    createTextComponent("special_requests_detail", "📝 Special Requests: " + specialRequests, "body"));
         } else {
             components.add(createTextComponent("special_requests_detail", "📝 No special requests", "body"));
         }
@@ -218,8 +212,9 @@ public class RestaurantBookingService implements A2UIDisplay {
         // Add book button with context binding
         Map<String, String> contextBindings = new HashMap<>();
         contextBindings.put("restaurantName", "/form/restaurantName");
-        components.add(createButtonComponent("book_button", "Start New Reservation", "bookRestaurantReservation", contextBindings));
-        
+        components.add(createButtonComponent("book_button", "Start New Reservation", "bookRestaurantReservation",
+                contextBindings));
+
         // Add button text child
         components.add(createTextComponent("book_button_text", "Start New Reservation"));
 

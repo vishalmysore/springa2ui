@@ -3,16 +3,16 @@ package io.github.vishalmysore.service.advanced;
 import com.t4a.annotations.Action;
 import com.t4a.annotations.Agent;
 import com.t4a.detect.ActionCallback;
-import io.github.vishalmysore.util.A2UIDisplay;
+import com.t4a.processor.ProcessorAware;
+import io.github.vishalmysore.a2ui.A2UIAware;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.util.*;
 
 @Service
-@Agent(groupName = "userProfile",
-       groupDescription = "View and manage user profile with multiple sections")
+@Agent(groupName = "userProfile",      groupDescription = "View and manage user profile with multiple sections", prompt = "you are a user profile management assistant. Provide users with detailed information about their profiles, including overview, activity, settings, and security sections based on the user ID they provide.")
 @Slf4j
-public class UserProfileService implements A2UIDisplay {
+public class UserProfileService implements A2UIAware, ProcessorAware {
     
     private ThreadLocal<ActionCallback> callback = new ThreadLocal<>();
     
@@ -20,7 +20,7 @@ public class UserProfileService implements A2UIDisplay {
     public Object viewProfile(String userId, String tab) {
         log.info("Viewing profile for user {} on tab {}", userId, tab);
         
-        if(isUICallback(callback)) {
+        if(isUICallback(getCallback())) {
             return createProfileUI(userId, tab);
         } else {
             return "Profile for user: " + userId + " (" + tab + " section)";

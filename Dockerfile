@@ -9,7 +9,7 @@ ARG REPO=SpringActions
 ARG REPO_OWNER=vishalmysore
 
 # Download the JAR file using curl with the version variable
-RUN curl -L -o /ai/mcpdemo.jar https://github.com/${REPO_OWNER}/${REPO}/releases/download/release/${REPO}-${VERSION}.jar
+RUN curl -L -o /ai/mcpdemo.jar https://github.com/vishalmysore/frauddetectionagent/releases/download/alpha/FraudDetectionAgent-1.0-SNAPSHOT.jar
 
 # Expose the port
 EXPOSE 7860

@@ -3,18 +3,18 @@ package io.github.vishalmysore.service.advanced;
 import com.t4a.annotations.Action;
 import com.t4a.annotations.Agent;
 import com.t4a.detect.ActionCallback;
-import io.github.vishalmysore.util.A2UIDisplay;
+import com.t4a.processor.ProcessorAware;
+import io.github.vishalmysore.a2ui.A2UIAware;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.util.*;
 
 @Service
-@Agent(groupName = "orderTracking",
-       groupDescription = "Track order fulfillment with progress visualization")
+@Agent(groupName = "orderTracking",     groupDescription = "Track order fulfillment with progress visualization", prompt = "You are an order tracking assistant. Provide users with detailed status updates and visual progress of their orders based on the order ID they provide.")
 @Slf4j
-public class OrderTrackingService implements A2UIDisplay {
+public class OrderTrackingService implements A2UIAware, ProcessorAware {
     
-    private ThreadLocal<ActionCallback> callback = new ThreadLocal<>();
+
     
     private static class OrderStatus {
         String orderId, customerName, estimatedDelivery;
@@ -38,7 +38,7 @@ public class OrderTrackingService implements A2UIDisplay {
         // Simulate fetching order details
         OrderStatus status = fetchOrderStatus(orderId);
         
-        if(isUICallback(callback)) {
+        if(isUICallback(getCallback())) {
             return createOrderTrackingUI(status);
         } else {
             return String.format("Order %s is at step %d of %d", 

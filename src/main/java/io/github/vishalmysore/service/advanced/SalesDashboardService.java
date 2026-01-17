@@ -3,16 +3,16 @@ package io.github.vishalmysore.service.advanced;
 import com.t4a.annotations.Action;
 import com.t4a.annotations.Agent;
 import com.t4a.detect.ActionCallback;
-import io.github.vishalmysore.util.A2UIDisplay;
+import com.t4a.processor.ProcessorAware;
+import io.github.vishalmysore.a2ui.A2UIAware;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.util.*;
 
 @Service
-@Agent(groupName = "salesDashboard",
-       groupDescription = "View sales performance metrics and KPIs")
+@Agent(groupName = "salesDashboard",    groupDescription = "View sales performance metrics and KPIs", prompt = "you are a sales dashboard assistant. Provide users with detailed sales performance metrics and KPIs based on the selected reporting period.")
 @Slf4j
-public class SalesDashboardService implements A2UIDisplay {
+public class SalesDashboardService implements A2UIAware, ProcessorAware {
     
     private ThreadLocal<ActionCallback> callback = new ThreadLocal<>();
     
@@ -23,7 +23,7 @@ public class SalesDashboardService implements A2UIDisplay {
         // Simulate fetching metrics from database
         Map<String, Object> metrics = calculateMetrics(period);
         
-        if(isUICallback(callback)) {
+        if(isUICallback(getCallback())) {
             return createDashboardUI(period, metrics);
         } else {
             return String.format("Sales Dashboard - Period: %s, Total: $%,d, Growth: %.1f%%",

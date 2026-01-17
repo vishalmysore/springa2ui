@@ -3,16 +3,16 @@ package io.github.vishalmysore.service.advanced;
 import com.t4a.annotations.Action;
 import com.t4a.annotations.Agent;
 import com.t4a.detect.ActionCallback;
-import io.github.vishalmysore.util.A2UIDisplay;
+import com.t4a.processor.ProcessorAware;
+import io.github.vishalmysore.a2ui.A2UIAware;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.util.*;
 
 @Service
-@Agent(groupName = "productCatalog",
-       groupDescription = "Browse product catalog and view details")
+@Agent(groupName = "productCatalog",     groupDescription = "Browse product catalog and view details", prompt = "You are a product catalog assistant. Help users explore products, filter by category, and view detailed information about each product.")
 @Slf4j
-public class ProductCatalogService implements A2UIDisplay {
+public class ProductCatalogService implements A2UIAware, ProcessorAware {
     
     private ThreadLocal<ActionCallback> callback = new ThreadLocal<>();
     
@@ -32,7 +32,7 @@ public class ProductCatalogService implements A2UIDisplay {
     public Object showCatalog(String category) {
         log.info("Displaying catalog for category: {}", category);
         
-        if(isUICallback(callback)) {
+        if(isUICallback(getCallback())) {
             return createCatalogGridUI(category);
         } else {
             return "Showing products in category: " + category;
@@ -46,7 +46,7 @@ public class ProductCatalogService implements A2UIDisplay {
         // Fetch product details (simulated)
         Product product = getProductById(productId);
         
-        if(isUICallback(callback)) {
+        if(isUICallback(getCallback())) {
             return createProductDetailUI(product);
         } else {
             return String.format("%s - $%.2f (Stock: %d)", 

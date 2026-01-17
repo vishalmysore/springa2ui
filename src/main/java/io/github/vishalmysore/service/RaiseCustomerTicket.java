@@ -1,15 +1,12 @@
 package io.github.vishalmysore.service;
 
 import com.t4a.annotations.Action;
-import com.t4a.annotations.Agent;
-
-import com.t4a.api.JavaMethodAction;
 
 import com.t4a.detect.ActionCallback;
 import com.t4a.detect.ActionState;
 import com.t4a.processor.AIProcessor;
-import io.github.vishalmysore.common.CallBackType;
-import io.github.vishalmysore.util.A2UIDisplay;
+import com.t4a.processor.ProcessorAware;
+import io.github.vishalmysore.a2ui.A2UIAware;
 import lombok.extern.java.Log;
 import org.springframework.stereotype.Service;
 
@@ -18,13 +15,13 @@ import java.util.*;
 @Service
 @Log
 //@Agent(groupName ="raiseTicket", groupDescription = "Create a ticket for customer")
-public class RaiseCustomerTicket implements A2UIDisplay {
+public class RaiseCustomerTicket  implements A2UIAware, ProcessorAware {
     /**
      * Each action has access to AIProcessor and ActionCallback which are autowired by tools4ai
      * Use ThreadLocal to store the ActionCallback for the current thread if you are concerned
      * about concurrency issues.
      */
-    private static final ThreadLocal<ActionCallback> callbackThreadLocal = new ThreadLocal<>();
+
 
     /**
      * Each action has access to AIProcessor and ActionCallback which are autowired by tools4ai
@@ -41,8 +38,8 @@ public class RaiseCustomerTicket implements A2UIDisplay {
         log.info("Raising ticket for customer: " + customerName + ", reason: " + reason);
         
         // Handle ThreadLocal callback for status updates
-        if(callbackThreadLocal.get() != null) {
-            ActionCallback localCallback = callbackThreadLocal.get();
+        if(getCallback() != null) {
+            ActionCallback localCallback = getCallback();
             log.info("callback is set "+localCallback);
             if(localCallback!=null) {
                 //the spelling mistake in the message is intentional to test the callback and the ai
@@ -57,7 +54,7 @@ public class RaiseCustomerTicket implements A2UIDisplay {
         String result = "Ticket " + ticketId + " raised for " + customerName;
         
         // Check if A2UI is requested
-        if(isUICallback(callbackThreadLocal)) {
+        if(isUICallback(getCallback())) {
             return createTicketUI(customerName, reason, ticketId);
         } else {
             return result;

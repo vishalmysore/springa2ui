@@ -4,18 +4,18 @@ import com.t4a.annotations.Action;
 import com.t4a.annotations.Agent;
 import com.t4a.annotations.Prompt;
 import com.t4a.detect.ActionCallback;
-import io.github.vishalmysore.util.A2UIDisplay;
+import com.t4a.processor.ProcessorAware;
+import io.github.vishalmysore.a2ui.A2UIAware;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.util.*;
 
 @Service
-@Agent(groupName = "loanCalculator",
-       groupDescription = "Calculate loan payments and total interest")
+@Agent(groupName = "loanCalculator",   groupDescription = "Calculate loan payments and total interest" , prompt = "You are a loan calculator service. You will be provided with principal amount, annual interest rate, and loan term in years. Your task is to calculate the monthly payment and total interest paid over the life of the loan. Present the results in a clear and concise manner. If the user requests a UI format, provide a structured A2UI response with relevant details and input fields for recalculation.")
 @Slf4j
-public class LoanCalculatorService implements A2UIDisplay {
+public class LoanCalculatorService implements A2UIAware, ProcessorAware {
     
-    private ThreadLocal<ActionCallback> callback = new ThreadLocal<>();
+
     
     @Action(description = "Calculate monthly loan payment and total interest")
     public Object calculateLoan(double principal, @Prompt(describe = "Do not put any comments as it spoils json format, if you cannot decide put 0.5 as default value") double annualRate, int years) {
@@ -29,7 +29,7 @@ public class LoanCalculatorService implements A2UIDisplay {
         double totalPayment = monthlyPayment * months;
         double totalInterest = totalPayment - principal;
         
-        if(isUICallback(callback)) {
+        if(isUICallback(getCallback())) {
             return createLoanResultUI(principal, annualRate, years, 
                 monthlyPayment, totalPayment, totalInterest);
         } else {

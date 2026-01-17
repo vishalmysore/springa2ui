@@ -1,18 +1,18 @@
 package io.github.vishalmysore.service.advanced;
 
 import com.t4a.annotations.Action;
-import com.t4a.annotations.Agent;
 import com.t4a.detect.ActionCallback;
-import io.github.vishalmysore.util.A2UIDisplay;
+import com.t4a.processor.ProcessorAware;
+import io.github.vishalmysore.a2ui.A2UIAware;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.util.*;
 
 @Service
-@Agent(groupName = "taskManager",
-       groupDescription = "Manage tasks with priority and completion tracking")
+//@Agent(groupName = "taskManager",
+  //     groupDescription = "Manage tasks with priority and completion tracking")
 @Slf4j
-public class TaskManagerService implements A2UIDisplay {
+public class TaskManagerService implements A2UIAware, ProcessorAware {
     
     private ThreadLocal<ActionCallback> callback = new ThreadLocal<>();
     
@@ -30,7 +30,7 @@ public class TaskManagerService implements A2UIDisplay {
     public Object showTasks(String filter) {
         log.info("Displaying tasks with filter: {}", filter);
         
-        if(isUICallback(callback)) {
+        if(isUICallback(getCallback())) {
             return createTaskListUI(filter);
         } else {
             return "Task list for filter: " + filter;
@@ -44,7 +44,7 @@ public class TaskManagerService implements A2UIDisplay {
         String[] ids = taskIds.split(",");
         String message = "Marked " + ids.length + " task(s) as complete!";
         
-        if(isUICallback(callback)) {
+        if(isUICallback(getCallback())) {
             return createCompletionConfirmationUI(ids, message);
         } else {
             return message;
