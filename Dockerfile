@@ -8,11 +8,14 @@ WORKDIR /app
 COPY . .
 RUN mvn clean package -DskipTests
 
-# Runtime stage
 FROM eclipse-temurin:17-jre
 WORKDIR /app
+
+# Set port using env var
+ENV SERVER_PORT=8080
+
 COPY --from=build /app/target/*.jar springactions-0.2.3.jar
 
 EXPOSE 8080
 
-CMD ["java", "-jar", "target/springactions-0.2.3.jar"]
+CMD ["java", "-jar", "springactions-0.2.3.jar"]
