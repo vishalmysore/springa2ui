@@ -16,4 +16,5 @@ COPY --from=build /app/target/*.jar springactions-0.2.3.jar
 EXPOSE 8080
 
 # IMPORTANT: bind to Render PORT at runtime
-CMD ["sh", "-c", "java -jar springactions-0.2.3.jar --server.port=${PORT}"]
+CMD ["sh", "-c", "echo PORT=$PORT && java -jar springactions-0.2.3.jar --server.port=${PORT}"]
+
