@@ -11,11 +11,9 @@ RUN mvn clean package -DskipTests
 FROM eclipse-temurin:18-jre
 WORKDIR /app
 
-# Bind to Render port
-ENV SERVER_PORT=${PORT}
-
 COPY --from=build /app/target/*.jar springactions-0.2.3.jar
 
 EXPOSE 8080
 
-CMD ["java", "-jar", "springactions-0.2.3.jar"]
+# IMPORTANT: bind to Render PORT at runtime
+CMD ["sh", "-c", "java -jar springactions-0.2.3.jar --server.port=${PORT}"]
